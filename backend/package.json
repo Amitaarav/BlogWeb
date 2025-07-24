@@ -13,7 +13,10 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240529.0",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.5",
     "prisma": "^6.0.0",
+    "ts-jest": "^29.4.0",
     "wrangler": "^3.57.2"
   }
 }

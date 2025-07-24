@@ -27,7 +27,7 @@ function App() {
 }
 
 function HandleAuth(){
-  const [isSignin, setIsSignin] = useState(false)
+  const [isSignin] = useState(false)
   return isSignin ? <Signin/> : <Signup/>
 }
 

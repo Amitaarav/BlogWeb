@@ -15,7 +15,7 @@ const app = new Hono<{
 app.use('/api/*', cors());
 app.route("api/v1/user", userRouter);
 app.route("api/v1/blog", blogRouter);
-
+app.get("/", c => c.text("Welcome to API root"));
 app.use('/message/*', async (c, next) => {
   const authHeader = c.req.header('Authorization')||"";
   const response = await verify(authHeader, c.env.JWT_SECRET);

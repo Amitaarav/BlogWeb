@@ -42,10 +42,20 @@ export const BlogCard = ({
     </Link>
 }
 
-export function Avatar({name,size = 8}:{name:string,size?:number}){
+export function Avatar({name, size = 8, imageUrl}:{name:string, size?:number, imageUrl?:string}){
     return <div>
-        <div className={`relative inline-flex items-center justify-center w-${size} h-${size}  overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600`}>
-            <span className="font-sm text-gray-600 dark:text-gray-300">{name[0]}</span>
+        <div className={`relative inline-flex items-center justify-center w-${size} h-${size} overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full hover:shadow-lg transition-all duration-200`}>
+            {imageUrl ? (
+                <img 
+                    src={imageUrl} 
+                    alt={name}
+                    className="w-full h-full object-cover"
+                />
+            ) : (
+                <span className="font-medium text-white text-lg">
+                    {name[0].toUpperCase()}
+                </span>
+            )}
         </div>
     </div>
 }
