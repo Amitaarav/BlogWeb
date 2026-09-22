@@ -1,16 +1,15 @@
 import { Hono } from "hono";
-import { PrismaClient } from '@prisma/client/edge'
-import { withAccelerate } from '@prisma/extension-accelerate'
-import { sign } from 'hono/jwt'
-import { signUpInput, signInInput } from "@amitaarav/blog-common";
+import { createPrisma } from "../lib/prisma";
+import { sign, verify } from 'hono/jwt';
+import { signUpInput, signInInput, updateProfileInput } from "@amitaarav/blog-common";
+import type { Bindings, Variables } from "../types/env";
 
 export const userRouter = new Hono<{
-    Bindings: {
-        DATABASE_URL: string;
-        JWT_SECRET: string;
-    }
+    Bindings: Bindings;
+    Variables: Variables;
 }>();
 
+// User Signup
 userRouter.post('/signup', async (c) => {
     const body = await c.req.json();
     const { success } = signUpInput.safeParse(body);
@@ -18,67 +17,186 @@ userRouter.post('/signup', async (c) => {
         c.status(411);
         return c.json({
             message: "Inputs not correct"
-        })
+        });
     }
-    const prisma = new PrismaClient({
-        datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate())
-    
+
+    const prisma = createPrisma(c.env.HYPERDRIVE.connectionString)
+
     try {
+        const existingUser = await prisma.user.findFirst({
+            where: { email: body.email }
+        });
+
+        if (existingUser) {
+            c.status(409);
+            return c.json({ message: "User already exists with this email" });
+        }
+
         const user = await prisma.user.create({
             data: {
                 username: body.username,
-                email:body.email,
-                password: body.password
-        }
-        })
-        const jwt = await sign({
-        id: user.id
+                email: body.email,
+                password: body.password,
+                name: body.name || body.username
+            },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                name: true
+            }
+        });
+
+        const token = await sign({
+            id: user.id
         }, c.env.JWT_SECRET);
-        
-        return c.text(jwt)
-    } catch(e) {
-        console.log(e);
-        c.status(411);
-        return c.text('Invalid')
+
+        return c.json({
+            token,
+            user,
+            jwt: token // backwards-compatibility
+        });
+    } catch (e) {
+        console.error("Signup error:", e);
+        c.status(500);
+        return c.json({ message: "Error while signing up" });
     }
-    })
-    
-    
-    userRouter.post('/signin', async (c) => {
+});
+
+// User Signin
+userRouter.post('/signin', async (c) => {
     const body = await c.req.json();
     const { success } = signInInput.safeParse(body);
     if (!success) {
         c.status(411);
         return c.json({
             message: "Inputs not correct"
-        })
+        });
     }
 
-    const prisma = new PrismaClient({
-        datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate())
-    
+    const prisma = createPrisma(c.env.HYPERDRIVE.connectionString)
+
     try {
         const user = await prisma.user.findFirst({
-        where: {
-            email: body.email,
-            password: body.password,
-        }
-        })
+            where: {
+                email: body.email,
+                password: body.password,
+            },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                name: true
+            }
+        });
+
         if (!user) {
-        c.status(403);
-        return c.json({
-            message: "Incorrect creds"
-        })
+            c.status(403);
+            return c.json({
+                message: "Incorrect credentials"
+            });
         }
+
         const token = await sign({
-        id: user.id
+            id: user.id
         }, c.env.JWT_SECRET);
-        return c.text(token)
-        } catch(e) {
-            console.log(e);
-            c.status(411);
-            return c.text('Invalid')
+
+        return c.json({
+            token,
+            user,
+            jwt: token // backwards-compatibility
+        });
+    } catch (e) {
+        console.error("Signin error:", e);
+        c.status(500);
+        return c.json({ message: "Error while signing in" });
     }
-    })
+});
+
+// Get Current User Profile
+userRouter.get('/me', async (c) => {
+    const authHeader = c.req.header("Authorization") || "";
+    if (!authHeader.startsWith("Bearer ")) {
+        c.status(401);
+        return c.json({ message: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    try {
+        const payload = await verify(token, c.env.JWT_SECRET);
+        if (!payload || typeof payload !== "object" || !("id" in payload)) {
+            c.status(401);
+            return c.json({ message: "Invalid token" });
+        }
+
+        const prisma = createPrisma(c.env.HYPERDRIVE.connectionString)
+
+        const user = await prisma.user.findUnique({
+            where: { id: payload.id as string },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                name: true
+            }
+        });
+
+        if (!user) {
+            c.status(404);
+            return c.json({ message: "User not found" });
+        }
+
+        return c.json({ user });
+    } catch (e) {
+        console.error("Fetch me error:", e);
+        c.status(401);
+        return c.json({ message: "Unauthorized" });
+    }
+});
+
+// Update User Profile
+userRouter.put('/profile', async (c) => {
+    const authHeader = c.req.header("Authorization") || "";
+    if (!authHeader.startsWith("Bearer ")) {
+        c.status(401);
+        return c.json({ message: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    try {
+        const payload = await verify(token, c.env.JWT_SECRET);
+        if (!payload || typeof payload !== "object" || !("id" in payload)) {
+            c.status(401);
+            return c.json({ message: "Invalid token" });
+        }
+
+        const body = await c.req.json();
+        const { success } = updateProfileInput.safeParse(body);
+        if (!success) {
+            c.status(411);
+            return c.json({ message: "Invalid profile inputs" });
+        }
+
+        const prisma = createPrisma(c.env.HYPERDRIVE.connectionString)
+
+        const updatedUser = await prisma.user.update({
+            where: { id: payload.id as string },
+            data: {
+                ...(body.name !== undefined ? { name: body.name } : {}),
+                ...(body.username !== undefined ? { username: body.username } : {})
+            },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                name: true
+            }
+        });
+
+        return c.json({ user: updatedUser, message: "Profile updated successfully" });
+    } catch (e) {
+        console.error("Profile update error:", e);
+        c.status(500);
+        return c.json({ message: "Failed to update profile" });
+    }
+});

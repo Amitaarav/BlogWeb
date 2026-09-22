@@ -1,34 +1,31 @@
 
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { Signup } from './pages/Signup'
-import { Signin } from './pages/Signin'
-import { Blog } from './pages/Blog'
-import { Blogs } from './pages/Blogs'
-import { Publish } from './pages/Publish'
-import { useState } from 'react'
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+import { Landing } from './pages/Landing';
+import { Signup } from './pages/Signup';
+import { Signin } from './pages/Signin';
+import { Blog } from './pages/Blog';
+import { Blogs } from './pages/Blogs';
+import { Publish } from './pages/Publish';
+import { Profile } from './pages/Profile';
+import { BlogPostPage } from './features/blog-post/pages/BlogPostPage';
 
 function App() {
-
   return (
-    <>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/signin" element={<Signin />} />
-          <Route path="/blog/:id" element={<Blog />} />
-          <Route path="/blogs" element={<Blogs />} />
-          <Route path="/*" element={ <HandleAuth/>} />
-          <Route path="/publish" element={<Publish />} />
-        </Routes>
-      </BrowserRouter>
-      
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/signin" element={<Signin />} />
+        <Route path="/blogs" element={<Blogs />} />
+        <Route path="/blog/:id" element={<Blog />} />
+        <Route path="/publish" element={<Publish />} />
+        <Route path="/edit/:id" element={<Publish />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/blog-v2/:id" element={<BlogPostPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-function HandleAuth(){
-  const [isSignin] = useState(false)
-  return isSignin ? <Signin/> : <Signup/>
-}
-
-export default App
+export default App;

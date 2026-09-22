@@ -1,22 +1,24 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "wrangler dev src/index.ts",
+    "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify src/index.ts"
   },
   "dependencies": {
     "@100xdevs/common-app": "^1.0.3",
     "@amitaarav/blog-common": "^1.0.2",
-    "@prisma/client": "^6.0.0",
-    "@prisma/extension-accelerate": "^1.1.0",
-    "hono": "^4.6.2"
+    "@prisma/adapter-pg": "^6.16.2",
+    "@prisma/client": "^6.16.2",
+    "hono": "^4.6.2",
+    "pg": "^8.23.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240529.0",
+    "@cloudflare/workers-types": "^5.20260917.1",
     "@types/jest": "^30.0.0",
+    "@types/pg": "^8.23.1",
     "jest": "^30.0.5",
-    "prisma": "^6.0.0",
+    "prisma": "^6.16.2",
     "ts-jest": "^29.4.0",
-    "wrangler": "^3.57.2"
+    "wrangler": "^4.133.0"
   }
 }

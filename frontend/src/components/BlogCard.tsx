@@ -2,49 +2,71 @@ import { Link } from "react-router-dom";
 
 interface BlogCardProps {
   authorName: string;
-  authorAvatar: string;
   title: string;
   content: string;
-  date: string;
-  id:string;
+  date?: string;
+  id: string;
 }
+
 export const BlogCard = ({
     authorName,
     title,
     content,
-    date,
+    date = "Recently",
     id
-}:BlogCardProps) => {
-    return <Link to = {`/blog/${id}`}>
-    <div className="pl-4 m-4 bg-white rounded-md shadow-md border-b-2 border-slate-300 cursor-pointer hover:bg-slate-100">
-        <div className="flex m-2"> 
-            <div className="flex justify-center flex-col">
-                <Avatar name={authorName}/> 
-            </div>
-            <div className="flex">
-            <div className="font-medium pl-2 text-sm flex flex-col justify-center">{authorName}</div>
-            <div className="flex justify-center pl-2 flex-col"> <Circle/> </div>
-            <div className="pl-2 font-thin text-slate-500 flex flex-col justify-center">{date}</div>
-            </div>
-            
-        </div>
-        <div className="font-bold text-3xl pb-4 mr-4">{title}</div>
-        <div>
-            {content.slice(0, 100) + '...'}
-        </div>
-        <div className="text-sm text-slate-500 pt-2 font-thin">
-            {`${Math.ceil(content.length / 100)} minutes read`}
-        </div>
-        <div className="bg-slate-200 h-1 w-full">
+}: BlogCardProps) => {
+    const cleanContent = content.replace(/<[^>]*>?/gm, '');
+    const readTime = Math.max(1, Math.ceil(cleanContent.trim().split(/\s+/).length / 200));
 
-        </div>
-    </div>
-    </Link>
-}
+    return (
+        <Link to={`/blog/${id}`} className="block w-full">
+            <div className="p-4 sm:p-6 bg-white rounded-lg border-b-2 border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors duration-150">
+                <div className="flex items-center gap-2 mb-2"> 
+                    <Avatar name={authorName || "Anonymous"} size="small" /> 
+                    <span className="font-medium text-sm text-slate-800">{authorName || "Anonymous"}</span>
+                    <span className="bg-slate-400 h-1 w-1 rounded-full inline-block"></span>
+                    <span className="font-thin text-xs text-slate-500">{date}</span>
+                </div>
 
-export function Avatar({name, size = 8, imageUrl}:{name:string, size?:number, imageUrl?:string}){
-    return <div>
-        <div className={`relative inline-flex items-center justify-center w-${size} h-${size} overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full hover:shadow-lg transition-all duration-200`}>
+                <h2 className="font-bold text-xl sm:text-2xl text-slate-900 pb-2">
+                    {title || "Untitled Blog"}
+                </h2>
+
+                <p className="text-slate-600 text-sm sm:text-base line-clamp-3 mb-3 leading-relaxed font-normal">
+                    {cleanContent.slice(0, 160) + (cleanContent.length > 160 ? "..." : "")}
+                </p>
+
+                <div className="text-xs text-slate-500 font-thin flex items-center justify-between pt-2">
+                    <span>{`${readTime} minute(s) read`}</span>
+                </div>
+            </div>
+        </Link>
+    );
+};
+
+export function Avatar({
+    name = "User", 
+    size = "medium", 
+    imageUrl
+}: {
+    name?: string; 
+    size?: "small" | "medium" | "large" | "xlarge" | number; 
+    imageUrl?: string;
+}) {
+    const sizeClasses = typeof size === "number"
+        ? size > 12 ? "w-16 h-16 text-2xl" : "w-8 h-8 text-sm"
+        : size === "small" 
+            ? "w-7 h-7 text-xs" 
+            : size === "large" 
+                ? "w-12 h-12 text-lg" 
+                : size === "xlarge" 
+                    ? "w-16 h-16 text-2xl" 
+                    : "w-9 h-9 text-sm";
+
+    const initial = (name && name.trim().length > 0) ? name.trim()[0].toUpperCase() : "U";
+
+    return (
+        <div className={`relative inline-flex items-center justify-center ${sizeClasses} overflow-hidden bg-slate-600 text-white font-medium rounded-full flex-shrink-0`}>
             {imageUrl ? (
                 <img 
                     src={imageUrl} 
@@ -52,16 +74,9 @@ export function Avatar({name, size = 8, imageUrl}:{name:string, size?:number, im
                     className="w-full h-full object-cover"
                 />
             ) : (
-                <span className="font-medium text-white text-lg">
-                    {name[0].toUpperCase()}
-                </span>
+                <span>{initial}</span>
             )}
         </div>
-    </div>
+    );
 }
-
-function Circle(){
-    return <div className="bg-slate-500 h-1 w-1 rounded-full">
-
-    </div>
-}
+
