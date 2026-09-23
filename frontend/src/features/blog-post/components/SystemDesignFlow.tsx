@@ -21,13 +21,19 @@ export const SystemDesignFlow = ({
 
   // Auto-play timer
   useEffect(() => {
-    let timer: number | undefined;
+    let timer: ReturnType<typeof setInterval>;
+
     if (isPlaying) {
-      timer = setInterval(() => {
-        setCurrentStep((prev) => (prev + 1) % steps.length);
-      }, 3000);
-    }
-    return () => clearInterval(timer);
+        timer = setInterval(() => {
+          setCurrentStep((prev) => (prev + 1) % steps.length);
+        }, 3000);
+      }
+
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
   }, [isPlaying, steps.length]);
 
   if (!steps || steps.length === 0) return null;
