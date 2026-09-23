@@ -3,15 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BACKEND_URL } from "../config";
 import { SignUpInput } from "@amitaarav/blog-common";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/useTheme";
 
 export const Auth = ({ type }: { type: "signup" | "signin" }) => {
-  const [postInputs, setPostInputs] = useState<SignUpInput & { name?: string }>({
+  const [postInputs, setPostInputs] = useState<
+    SignUpInput & { name?: string }
+  >({
     name: "",
     username: "",
     password: "",
     email: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { theme, toggleTheme } = useTheme();
@@ -19,10 +22,12 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 
   async function sendRequest() {
     setError(null);
+
     if (!postInputs.email || !postInputs.password) {
       setError("Please fill in all required fields.");
       return;
     }
+
     if (type === "signup" && !postInputs.username) {
       setError("Username is required.");
       return;
@@ -30,8 +35,11 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 
     try {
       setLoading(true);
+
       const response = await axios.post(
-        `${BACKEND_URL}/api/v1/users/${type === "signup" ? "signup" : "signin"}`,
+        `${BACKEND_URL}/api/v1/users/${
+          type === "signup" ? "signup" : "signin"
+        }`,
         postInputs
       );
 
@@ -41,24 +49,32 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
           : response.data.token || response.data.jwt;
 
       const user =
-        typeof response.data === "object" ? response.data.user : null;
+        typeof response.data === "object" && response.data !== null
+          ? response.data.user
+          : null;
 
       if (token) {
         localStorage.setItem("token", token);
       }
+
       if (user) {
         localStorage.setItem("user", JSON.stringify(user));
       }
 
       navigate("/blogs");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Auth error:", err);
-      setError(
-        err.response?.data?.message ||
-          (typeof err.response?.data === "string"
-            ? err.response.data
-            : "Something went wrong. Please check your credentials.")
-      );
+
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            (typeof err.response?.data === "string"
+              ? err.response.data
+              : "Something went wrong. Please check your credentials.")
+        );
+      } else {
+        setError("Something went wrong. Please check your credentials.");
+      }
     } finally {
       setLoading(false);
     }
@@ -82,6 +98,7 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
           />
           BlogWeb
         </Link>
+
         <button
           onClick={toggleTheme}
           className="p-1.5 rounded border transition hover:opacity-80"
@@ -108,10 +125,15 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
               {type === "signin" ? "Sign In to BlogWeb" : "Create an Account"}
             </h1>
-            <p className="text-xs sm:text-sm" style={{ color: "var(--text-dim)" }}>
+
+            <p
+              className="text-xs sm:text-sm"
+              style={{ color: "var(--text-dim)" }}
+            >
               {type === "signin"
                 ? "Don't have an account yet?"
                 : "Already have an account?"}
+
               <Link
                 className="pl-2 underline font-bold transition hover:opacity-80"
                 style={{ color: "var(--accent)" }}
@@ -138,7 +160,7 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              sendRequest();
+              void sendRequest();
             }}
             className="space-y-4 pt-2"
           >
@@ -153,13 +175,17 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
                     setPostInputs({ ...postInputs, name: e.target.value })
                   }
                 />
+
                 <LabelInput
                   type="text"
                   label="Username"
                   placeholder="e.g. amitkumar"
                   value={postInputs.username}
                   onChange={(e) =>
-                    setPostInputs({ ...postInputs, username: e.target.value })
+                    setPostInputs({
+                      ...postInputs,
+                      username: e.target.value,
+                    })
                   }
                 />
               </>
@@ -231,6 +257,7 @@ function LabelInput({
       >
         {label}
       </label>
+
       <input
         type={type}
         value={value}
@@ -247,5 +274,3 @@ function LabelInput({
     </div>
   );
 }
-
-export default Auth;

@@ -11,6 +11,24 @@ interface ConsoleOutput {
   text: string;
 }
 
+const formatConsoleValue = (value: unknown): string => {
+  if (typeof value === "object" && value !== null) {
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return "[Unserializable object]";
+    }
+  }
+
+  return String(value);
+};
+
+interface SandboxConsole {
+  log: (...args: unknown[]) => void;
+  error: (...args: unknown[]) => void;
+  warn: (...args: unknown[]) => void;
+}
+
 export const CodeSandbox = ({
   initialCode,
   language = "javascript",
@@ -29,23 +47,25 @@ export const CodeSandbox = ({
     const startTime = performance.now();
 
     // Custom console logger
-    const customConsole = {
-      log: (...args: any[]) => {
+    const customConsole: SandboxConsole = {
+      log: (...args: unknown[]) => {
         logs.push({
           type: "log",
-          text: args.map((a) => (typeof a === "object" ? JSON.stringify(a, null, 2) : String(a))).join(" "),
+          text: args.map(formatConsoleValue).join(" "),
         });
       },
-      error: (...args: any[]) => {
+
+      error: (...args: unknown[]) => {
         logs.push({
           type: "error",
-          text: args.map((a) => (typeof a === "object" ? JSON.stringify(a, null, 2) : String(a))).join(" "),
+          text: args.map(formatConsoleValue).join(" "),
         });
       },
-      warn: (...args: any[]) => {
+
+      warn: (...args: unknown[]) => {
         logs.push({
           type: "warn",
-          text: args.map((a) => (typeof a === "object" ? JSON.stringify(a, null, 2) : String(a))).join(" "),
+          text: args.map(formatConsoleValue).join(" "),
         });
       },
     };
@@ -61,10 +81,15 @@ export const CodeSandbox = ({
           text: `↩ Return: ${typeof result === "object" ? JSON.stringify(result, null, 2) : String(result)}`,
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : String(err);
+
       logs.push({
         type: "error",
-        text: `Error: ${err?.message || String(err)}`,
+        text: `Error: ${message}`,
       });
     }
 

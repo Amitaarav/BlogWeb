@@ -27,7 +27,9 @@ function parseSystemDesignSteps(raw: string): SystemDesignStep[] {
   try {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) return parsed;
-  } catch {}
+  } catch {
+    // JSON parsing failed; fall back to pipe-delimited format below.
+  }
 
   // Fallback: parse lines formatted as: Node | Role | Detail | Metric
   const lines = raw.split(/\r?\n/).filter((l) => l.trim().length > 0);

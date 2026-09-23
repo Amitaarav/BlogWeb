@@ -31,8 +31,8 @@ export const FullBlog = ({ blog }: { blog: Blog }) => {
                 headers: { Authorization: token ? `Bearer ${token}` : "" }
             });
             navigate("/blogs");
-        } catch (err: any) {
-            alert(err.response?.data?.message || "Failed to delete blog post");
+        } catch (err) {
+            alert(err || "Failed to delete blog post");
             setDeleting(false);
         }
     };
@@ -113,4 +113,4 @@ export const FullBlog = ({ blog }: { blog: Blog }) => {
         </div>
     );
 };
-
+

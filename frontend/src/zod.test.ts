@@ -1,5 +1,8 @@
-const { validate } = require('zod');
+import { expect, test } from "vitest";
+import { z } from "zod";
 
-test('hello world!', () => {
-	expect(validate('test')).toBe('test');
+test("validates a string", () => {
+  const schema = z.string();
+
+  expect(schema.parse("test")).toBe("test");
 });

@@ -197,13 +197,10 @@ export const BlogPostPage = () => {
 
   const blog = isDemo ? DEMO_ENGINEERING_BLOG : fetchedBlog;
 
-  if(!blog){
-    return null
-  }
   const { blocks, tocItems } = useMemo(() => {
     if (!blog) return { blocks: [], tocItems: [] };
     return parseBlogContent(blog.content);
-  }, [blog?.content]);
+  }, [blog]);
 
   // Loading state
   if (loading && !isDemo) {
@@ -281,12 +278,18 @@ export const BlogPostPage = () => {
     );
   }
 
+  if(!blog){
+    return null;
+  }
+
   const authorName =
     blog.author?.name || blog.author?.username || "Anonymous";
+
   const isAuthor =
     !isDemo &&
     !!user &&
     (blog.authorId === user.id || blog.author?.username === user.username);
+
   const cleanContent = blog.content.replace(/<[^>]*>?/gm, "");
   const wordCount = cleanContent.trim().split(/\s+/).length;
   const readTime = Math.max(1, Math.ceil(wordCount / 200));
@@ -303,10 +306,18 @@ export const BlogPostPage = () => {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       navigate("/blogs");
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete post");
-      setDeleting(false);
-    }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        alert(
+            err.response?.data?.message ||
+              "Failed to delete post"
+          );
+        } else {
+          alert("Failed to delete post");
+        }
+
+        setDeleting(false);
+      }
   };
 
   const handleCopyLink = () => {

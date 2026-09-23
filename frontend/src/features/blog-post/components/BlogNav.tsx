@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../../hooks/useBlogs";
-import { useTheme } from "../../../context/ThemeContext";
-
+import { useTheme } from "../../../context/useTheme";
 export const BlogNav = () => {
   const { user } = useCurrentUser();
   const { theme, toggleTheme } = useTheme();

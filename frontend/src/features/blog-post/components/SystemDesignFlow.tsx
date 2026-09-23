@@ -21,7 +21,7 @@ export const SystemDesignFlow = ({
 
   // Auto-play timer
   useEffect(() => {
-    let timer: any;
+    let timer: number | undefined;
     if (isPlaying) {
       timer = setInterval(() => {
         setCurrentStep((prev) => (prev + 1) % steps.length);

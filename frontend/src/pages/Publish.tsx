@@ -144,7 +144,9 @@ export const Publish: React.FC = () => {
           const parsed = JSON.parse(savedDraft);
           if (parsed.title) setTitle(parsed.title);
           if (parsed.content) setDescription(parsed.content);
-        } catch {}
+        } catch {
+          //
+        }
       }
     }
   }, [isEditing, id]);
@@ -194,11 +196,17 @@ export const Publish: React.FC = () => {
           localStorage.removeItem("blogweb_creator_draft");
           navigate(`/blog/${data.id}`);
         }
-      } catch (err: any) {
-        console.error(err);
-        setError(err.response?.data?.message || "An unexpected error occurred.");
+      } catch (err: unknown) {
+        if(axios.isAxiosError(err)){
+          setError(
+            err.response?.data?.message ||
+            "Failed to update profile"
+          )
+        } else{
+          setError("Failed to update profile")
+        } 
       } finally {
-        setLoading(false);
+          setLoading(false);
       }
     },
     [title, description, isEditing, id, navigate]

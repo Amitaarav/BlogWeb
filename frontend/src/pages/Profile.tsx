@@ -6,7 +6,7 @@ import { AnnouncementBar } from "../features/blog-post/components/AnnouncementBa
 import { BlogFooter } from "../features/blog-post/components/BlogFooter";
 import { Avatar } from "../components/BlogCard";
 import { useCurrentUser } from "../hooks/useBlogs";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/useTheme";
 import { BACKEND_URL } from "../config";
 
 export const Profile: React.FC = () => {
@@ -68,9 +68,15 @@ export const Profile: React.FC = () => {
         }
 
         setSuccessMsg("Profile updated successfully!");
-      } catch (err: any) {
-        console.error("Profile update error:", err);
-        setError(err.response?.data?.message || "Failed to update profile");
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            "Failed to update profile"
+              );
+        } else {
+          setError("Failed to update profile");
+        }
       } finally {
         setLoading(false);
       }
