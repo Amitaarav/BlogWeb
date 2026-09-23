@@ -4,79 +4,139 @@ interface BlogCardProps {
   authorName: string;
   title: string;
   content: string;
-  date?: string;
+  createdAt: string;
+  updatedAt: string;
   id: string;
 }
 
+const formatDate = (date: string) => {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
+};
+
 export const BlogCard = ({
-    authorName,
-    title,
-    content,
-    date = "Recently",
-    id
+  authorName,
+  title,
+  content,
+  createdAt,
+  updatedAt,
+  id,
 }: BlogCardProps) => {
-    const cleanContent = content.replace(/<[^>]*>?/gm, '');
-    const readTime = Math.max(1, Math.ceil(cleanContent.trim().split(/\s+/).length / 200));
+  const cleanContent = content.replace(/<[^>]*>?/gm, "");
+  const readTime = Math.max(
+    1,
+    Math.ceil(cleanContent.trim().split(/\s+/).length / 200)
+  );
 
-    return (
-        <Link to={`/blog/${id}`} className="block w-full">
-            <div className="p-4 sm:p-6 bg-white rounded-lg border-b-2 border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors duration-150">
-                <div className="flex items-center gap-2 mb-2"> 
-                    <Avatar name={authorName || "Anonymous"} size="small" /> 
-                    <span className="font-medium text-sm text-slate-800">{authorName || "Anonymous"}</span>
-                    <span className="bg-slate-400 h-1 w-1 rounded-full inline-block"></span>
-                    <span className="font-thin text-xs text-slate-500">{date}</span>
-                </div>
+  const isUpdated = updatedAt !== createdAt;
 
-                <h2 className="font-bold text-xl sm:text-2xl text-slate-900 pb-2">
-                    {title || "Untitled Blog"}
-                </h2>
+  return (
+    <Link to={`/blog/${id}`} className="block w-full group my-4">
+      <article
+        className="p-5 sm:p-6 rounded-lg border font-mono transition-all duration-150 hover:translate-y-[-1px]"
+        style={{
+          backgroundColor: "var(--bg-card)",
+          borderColor: "var(--border)",
+        }}
+      >
+        {/* Byline / Author Header */}
+        <div className="flex items-center gap-2 mb-3 text-xs">
+          <Avatar name={authorName || "Anonymous"} size="small" />
+          <span className="font-bold" style={{ color: "var(--text)" }}>
+            {authorName || "Anonymous"}
+          </span>
+          <span style={{ color: "var(--text-dim)" }}>|</span>
+          <span style={{ color: "var(--text-dim)" }}>
+          {isUpdated
+            ? `Updated ${formatDate(updatedAt)}`
+            : `Published ${formatDate(createdAt)}`}
+        </span>
+        </div>
 
-                <p className="text-slate-600 text-sm sm:text-base line-clamp-3 mb-3 leading-relaxed font-normal">
-                    {cleanContent.slice(0, 160) + (cleanContent.length > 160 ? "..." : "")}
-                </p>
+        {/* Title with left accent bar on hover */}
+        <div className="flex items-stretch gap-3 mb-2">
+          <div
+            className="w-1 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+            style={{ backgroundColor: "var(--accent)" }}
+          />
+          <h2
+            className="font-bold text-lg sm:text-xl leading-snug group-hover:underline"
+            style={{ color: "var(--text)" }}
+          >
+            {title || "Untitled Blog"}
+          </h2>
+        </div>
 
-                <div className="text-xs text-slate-500 font-thin flex items-center justify-between pt-2">
-                    <span>{`${readTime} minute(s) read`}</span>
-                </div>
-            </div>
-        </Link>
-    );
+        {/* Content Snippet */}
+        <p
+          className="text-xs sm:text-sm line-clamp-2 sm:line-clamp-3 mb-4 leading-relaxed pl-4"
+          style={{ color: "var(--text-dim)" }}
+        >
+          {cleanContent.slice(0, 180) + (cleanContent.length > 180 ? "..." : "")}
+        </p>
+
+        {/* Card Footer: Reading time + Read Post prompt */}
+        <div
+          className="flex items-center justify-between text-xs pt-3 border-t"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <span style={{ color: "var(--text-dim)" }}>
+            ⏱ {readTime} min read
+          </span>
+          <span
+            className="font-bold text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
+            style={{ color: "var(--accent)" }}
+          >
+            Read story →
+          </span>
+        </div>
+      </article>
+    </Link>
+  );
 };
 
 export function Avatar({
-    name = "User", 
-    size = "medium", 
-    imageUrl
+  name = "User",
+  size = "medium",
+  imageUrl,
 }: {
-    name?: string; 
-    size?: "small" | "medium" | "large" | "xlarge" | number; 
-    imageUrl?: string;
+  name?: string;
+  size?: "small" | "medium" | "large" | "xlarge" | number;
+  imageUrl?: string;
 }) {
-    const sizeClasses = typeof size === "number"
-        ? size > 12 ? "w-16 h-16 text-2xl" : "w-8 h-8 text-sm"
-        : size === "small" 
-            ? "w-7 h-7 text-xs" 
-            : size === "large" 
-                ? "w-12 h-12 text-lg" 
-                : size === "xlarge" 
-                    ? "w-16 h-16 text-2xl" 
-                    : "w-9 h-9 text-sm";
+  const sizeClasses =
+    typeof size === "number"
+      ? size > 12
+        ? "w-16 h-16 text-2xl"
+        : "w-8 h-8 text-sm"
+      : size === "small"
+      ? "w-6 h-6 text-xs"
+      : size === "large"
+      ? "w-12 h-12 text-lg"
+      : size === "xlarge"
+      ? "w-16 h-16 text-2xl"
+      : "w-8 h-8 text-sm";
 
-    const initial = (name && name.trim().length > 0) ? name.trim()[0].toUpperCase() : "U";
+  const initial =
+    name && name.trim().length > 0 ? name.trim()[0].toUpperCase() : "U";
 
-    return (
-        <div className={`relative inline-flex items-center justify-center ${sizeClasses} overflow-hidden bg-slate-600 text-white font-medium rounded-full flex-shrink-0`}>
-            {imageUrl ? (
-                <img 
-                    src={imageUrl} 
-                    alt={name}
-                    className="w-full h-full object-cover"
-                />
-            ) : (
-                <span>{initial}</span>
-            )}
-        </div>
-    );
+  return (
+    <div
+      className={`relative inline-flex items-center justify-center ${sizeClasses} rounded-full flex-shrink-0 font-bold font-mono overflow-hidden select-none`}
+      style={{
+        backgroundColor: "var(--bg-secondary)",
+        color: "var(--accent)",
+        border: "1px solid var(--border)",
+      }}
+    >
+      {imageUrl ? (
+        <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
+      ) : (
+        <span>{initial}</span>
+      )}
+    </div>
+  );
 }
-

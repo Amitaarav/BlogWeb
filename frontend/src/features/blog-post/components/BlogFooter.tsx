@@ -30,10 +30,10 @@ const columns = [
   {
     title: "Social",
     links: [
-      { label: "Twitter / X", href: "#" },
-      { label: "GitHub", href: "#" },
-      { label: "LinkedIn", href: "#" },
-      { label: "Discord", href: "#" },
+      { label: "Twitter / X", href: "https://x.com/AmitAarav1205" },
+      { label: "GitHub", href: "https://github.com/Amitaarav" },
+      { label: "LinkedIn", href: "https://www.linkedin.com/in/amitkrgupta8" },
+      { label: "Discord", href: "https://discord.com/users/aaravamit8667" },
     ],
   },
 ];

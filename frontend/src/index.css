@@ -3,30 +3,72 @@
 @tailwind utilities;
 
 :root {
-  /* ── Gray / White Palette ── */
-  --bg:          #ffffff;
-  --bg-secondary:#f5f5f5;
-  --bg-code:     #f0f0f0;
-  --bg-nav:      #ffffff;
-  --bg-footer:   #2d2d2d;
+  /* ── Near-black Dark Design System (Default) ── */
+  --bg:           #0d0d0d;
+  --bg-secondary: #171717;
+  --bg-card:      #141414;
+  --bg-code:      #1a1a1a;
+  --bg-nav:       #0d0d0d;
+  --bg-footer:    #111111;
+  --bg-input:     #171717;
 
-  --announce:    #f5c400;
-  --accent:      #e8501c;
+  --announce:     #f5c400;
+  --accent:       #e8501c;
+  --accent-hover: #d04313;
 
-  --text:        #1a1a1a;
-  --text-dim:    #888888;
-  --text-inverse:#f2f2f2;
+  --text:         #f2f2f2;
+  --text-dim:     #888888;
+  --text-inverse: #0d0d0d;
 
-  --link:        #5b9dd9;
-  --border:      #e0e0e0;
+  --link:         #5b9dd9;
+  --link-hover:   #7ab4ea;
+  --border:       #262626;
+  --border-hover: #404040;
 
   /* Syntax highlighting */
-  --syn-keyword: #e8501c;
-  --syn-string:  #2e7d32;
-  --syn-ident:   #1a1a1a;
-  --syn-comment: #888888;
+  --syn-keyword:  #e8501c;
+  --syn-string:   #4ade80;
+  --syn-ident:    #f5f5f5;
+  --syn-comment:  #888888;
 
-  --font-mono:   'JetBrains Mono', ui-monospace, monospace;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+
+[data-theme="light"] {
+  /* ── Crisp Gray / White Light Design System ── */
+  --bg:           #ffffff;
+  --bg-secondary: #f6f6f6;
+  --bg-card:      #ffffff;
+  --bg-code:      #f0f0f0;
+  --bg-nav:       #ffffff;
+  --bg-footer:    #f2f2f2;
+  --bg-input:     #f8f8f8;
+
+  --announce:     #f5c400;
+  --accent:       #e8501c;
+  --accent-hover: #d04313;
+
+  --text:         #141414;
+  --text-dim:     #666666;
+  --text-inverse: #ffffff;
+
+  --link:         #2563eb;
+  --link-hover:   #1d4ed8;
+  --border:       #e2e2e2;
+  --border-hover: #b5b5b5;
+
+  /* Syntax highlighting */
+  --syn-keyword:  #e8501c;
+  --syn-string:   #16a34a;
+  --syn-ident:    #141414;
+  --syn-comment:  #737373;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 /* Smooth scroll for anchor links */
@@ -37,6 +79,7 @@ html {
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-secondary);

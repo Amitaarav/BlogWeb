@@ -1,10 +1,17 @@
 name = "backend"
-compatibility_date = "2024-09-21"
-compatibility_flags = [ "nodejs_compat" ]
+main = "src/index.ts"
 
- [vars]
- DATABASE_URL = "prisma://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5IjoiMmQ0NGJiNzgtM2MxMS00MDM5LWJmMmItZTA5NGIzNmM1NDM4IiwidGVuYW50X2lkIjoiMDY0MzEyNDQ4ODY3NjMzM2IyODRkMjM5ZWI0ODZjZDk4MmQ4NThmZWJhZmZiODk1NjUyMWE1YTk2YjhkOGVkMyIsImludGVybmFsX3NlY3JldCI6IjEzZjliMmYzLTcwNTAtNDI4MC04OGE1LThhZDRmMWFjMWViNCJ9.Dy8nlewelftHLOoWAlKWjtloh-8ZG3ShD9BP4hjcOUA"
-JWT_SECRET= "aaravamit555-secret"
+compatibility_date = "2026-09-17"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "blogweb-backend"
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "5b6bd14c7fc34a8ebd7ca5dc2171848b"
+localConnectionString = "postgresql://amitlks:amit555@localhost:5434/blogDB?schema=public"
+
 # MY_VAR = "my-variable"
 
 

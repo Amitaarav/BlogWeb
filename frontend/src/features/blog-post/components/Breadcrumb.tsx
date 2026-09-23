@@ -11,23 +11,33 @@ interface BreadcrumbProps {
 
 export const Breadcrumb = ({ items }: BreadcrumbProps) => {
   return (
-    <nav aria-label="Breadcrumb" className="font-mono text-sm mb-4">
-      <ol className="flex items-center flex-wrap gap-1">
+    <nav aria-label="Breadcrumb" className="font-mono text-xs sm:text-sm mb-4">
+      <ol className="flex items-center flex-wrap gap-2">
         {items.map((item, i) => (
-          <li key={i} className="flex items-center gap-1">
+          <li key={i} className="flex items-center gap-2">
             {i > 0 && (
-              <span style={{ color: "var(--text-dim)" }}>/</span>
+              <span
+                className="select-none text-xs"
+                style={{ color: "var(--border)" }}
+              >
+                |
+              </span>
             )}
             {item.href ? (
               <Link
                 to={item.href}
-                className="hover:underline"
+                className="font-bold hover:underline"
                 style={{ color: "var(--link)" }}
               >
                 {item.label}
               </Link>
             ) : (
-              <span style={{ color: "var(--text-dim)" }}>{item.label}</span>
+              <span
+                className="truncate max-w-[200px] sm:max-w-md"
+                style={{ color: "var(--text-dim)" }}
+              >
+                {item.label}
+              </span>
             )}
           </li>
         ))}

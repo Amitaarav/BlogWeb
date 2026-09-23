@@ -1,21 +1,38 @@
-
 export const Quote = () => {
   return (
-    <div className="bg-slate-200 h-screen flex justify-center items-center flex-col px-4">
-      <div className="flex justify-center">
-        <div className="max-w-lg text-justify text-3xl font-bold">
-          "The one excellent thing that can be learned from a lion is that whatever a man intends doing should be done by him with a whole-hearted and strenuous effort."
+    <div
+      className="min-h-screen font-mono flex justify-center items-center flex-col px-8 border-l transition-colors"
+      style={{
+        backgroundColor: "var(--bg-secondary)",
+        borderColor: "var(--border)",
+        color: "var(--text)",
+      }}
+    >
+      <div className="max-w-lg">
+        {/* Quote Block with Accent Bar */}
+        <div className="flex items-stretch gap-4 mb-6">
+          <div
+            className="w-1.5 rounded-full flex-shrink-0"
+            style={{ backgroundColor: "var(--accent)" }}
+          />
+          <blockquote className="text-xl sm:text-2xl font-bold leading-relaxed">
+            "The one excellent thing that can be learned from a lion is that
+            whatever a man intends doing should be done by him with a
+            whole-hearted and strenuous effort."
+          </blockquote>
         </div>
-      </div>
-      <div className="pt-4 flex flex-col items-center">
-        <div className="max-w-md text-xl font-semibold text-center">
-          Chanakya
-        </div>
-        <div className="max-w-md text-center text-sm font-semibold text-slate-700">
-          Hindu statesman and philosopher
+
+        <div className="pl-6">
+          <div className="text-base font-bold" style={{ color: "var(--text)" }}>
+            Chanakya
+          </div>
+          <div className="text-xs mt-1" style={{ color: "var(--text-dim)" }}>
+            Ancient Indian Philosopher & Statesman
+          </div>
         </div>
       </div>
     </div>
   );
 };
-        
+
+export default Quote;

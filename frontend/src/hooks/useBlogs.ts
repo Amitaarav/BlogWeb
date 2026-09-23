@@ -14,6 +14,8 @@ export interface Blog {
     content: string;
     published?: boolean;
     authorId?: string;
+    createdAt: string;
+    updatedAt: string;
     author: BlogAuthor;
 }
 
