@@ -23,7 +23,7 @@ export const TableOfContents = ({ items }: TableOfContentsProps) => {
 
   return (
     <aside
-      className="font-mono sticky top-24 hidden lg:block"
+      className="font-mono hidden lg:block"
       aria-label="Table of Contents"
     >
       <h4
