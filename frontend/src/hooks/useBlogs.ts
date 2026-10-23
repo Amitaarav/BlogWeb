@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { BACKEND_URL } from "../config";
 import { queryKeys } from "../lib/queryClient";
 
+const API_REQUEST_TIMEOUT_MS = 5_000;
+
 export interface BlogAuthor {
     id?: string;
     name?: string | null;
@@ -44,13 +46,14 @@ export const useBlog = ({ id }: { id: string }) => {
             const response = await axios.get(`${BACKEND_URL}/api/v1/blogs/${id}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
                 signal,
+                timeout: API_REQUEST_TIMEOUT_MS,
             });
             return response.data.blog as Blog;
         },
     });
 
     return {
-        loading: query.isPending,
+        loading: query.isLoading,
         blog: query.data ?? null,
         error: getErrorMessage(query.error, "Failed to fetch blog"),
         isNotFound: axios.isAxiosError(query.error) && query.error.response?.status === 404,
@@ -66,13 +69,14 @@ export const useBlogs = () => {
             const response = await axios.get(`${BACKEND_URL}/api/v1/blogs/bulk`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
                 signal,
+                timeout: API_REQUEST_TIMEOUT_MS,
             });
             return (response.data.blogs || []) as Blog[];
         },
     });
 
     return {
-        loading: query.isPending,
+        loading: query.isLoading,
         blogs: query.data ?? [],
         error: getErrorMessage(query.error, "Failed to fetch blogs"),
         refetch: () => query.refetch(),
@@ -100,6 +104,7 @@ export const useCurrentUser = () => {
             const response = await axios.get(`${BACKEND_URL}/api/v1/users/me`, {
                 headers: { Authorization: `Bearer ${currentToken}` },
                 signal,
+                timeout: API_REQUEST_TIMEOUT_MS,
             });
             const user = response.data?.user as UserProfile | undefined;
             if (user) localStorage.setItem("user", JSON.stringify(user));

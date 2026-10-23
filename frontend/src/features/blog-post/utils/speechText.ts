@@ -49,5 +49,5 @@ export function createSpeechSegments(blocks: ContentBlock[]): string[] {
     }
   }
 
-  return prose.flatMap(splitLongText).filter(Boolean);
+  return prose.flatMap((text) => splitLongText(text)).filter(Boolean);
 }
