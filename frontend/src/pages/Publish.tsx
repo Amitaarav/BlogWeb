@@ -8,6 +8,7 @@ import { Breadcrumb } from "../features/blog-post/components/Breadcrumb";
 import { BlogTitle } from "../features/blog-post/components/BlogTitle";
 import { ContentBlockRenderer } from "../features/blog-post/components/ContentBlockRenderer";
 import { parseBlogContent } from "../features/blog-post/utils/contentParser";
+import { getErrorMessage, useToast } from "../context/ToastContext";
 import { Spinner } from "../components/Spinner";
 import { BACKEND_URL } from "../config";
 
@@ -99,7 +100,7 @@ export const Publish: React.FC = () => {
   const [viewMode, setViewMode] = useState<"split" | "editor" | "preview">("split");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
-  const [error, setError] = useState<string | null>(null);
+  const showToast = useToast();
 
   const navigate = useNavigate();
 
@@ -130,7 +131,7 @@ export const Publish: React.FC = () => {
         })
         .catch((err) => {
           console.error("Error fetching blog for editing:", err);
-          setError("Failed to load blog for editing");
+          showToast("error", getErrorMessage(err, "Failed to load blog for editing."));
           setFetching(false);
         });
     } else {
@@ -146,7 +147,7 @@ export const Publish: React.FC = () => {
         }
       }
     }
-  }, [isEditing, id]);
+  }, [isEditing, id, showToast]);
 
   // Auto-save draft for new posts
   useEffect(() => {
@@ -165,10 +166,9 @@ export const Publish: React.FC = () => {
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setError(null);
 
       if (!title.trim() || !description.trim()) {
-        setError("Both title and article content are required.");
+        showToast("error", "Both title and article content are required.");
         return;
       }
 
@@ -183,6 +183,7 @@ export const Publish: React.FC = () => {
             { id, title: title.trim(), content: description.trim() },
             { headers }
           );
+          showToast("success", "Blog post updated successfully.");
           navigate(`/blog/${id}`);
         } else {
           const { data } = await axios.post(
@@ -191,22 +192,19 @@ export const Publish: React.FC = () => {
             { headers }
           );
           localStorage.removeItem("blogweb_creator_draft");
+          showToast("success", "Blog post published successfully.");
           navigate(`/blog/${data.id}`);
         }
       } catch (err: unknown) {
-        if(axios.isAxiosError(err)){
-          setError(
-            err.response?.data?.message ||
-            "Failed to update profile"
-          )
-        } else{
-          setError("Failed to update profile")
-        } 
+        showToast(
+          "error",
+          getErrorMessage(err, isEditing ? "Failed to update blog post." : "Failed to publish blog post."),
+        );
       } finally {
           setLoading(false);
       }
     },
-    [title, description, isEditing, id, navigate]
+    [title, description, isEditing, id, navigate, showToast]
   );
 
   const { blocks } = useMemo(() => {
@@ -303,19 +301,6 @@ export const Publish: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {error && (
-          <div
-            className="p-3 mb-4 rounded text-xs border font-semibold"
-            style={{
-              borderColor: "var(--accent)",
-              color: "var(--accent)",
-              backgroundColor: "var(--bg-card)",
-            }}
-          >
-            ⚠️ {error}
-          </div>
-        )}
 
         {/* Studio Split Layout */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[680px]">

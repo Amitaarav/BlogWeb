@@ -5,9 +5,11 @@ import { Blog, useCurrentUser } from "../hooks/useBlogs";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BACKEND_URL } from "../config";
+import { getErrorMessage, useToast } from "../context/ToastContext";
 
 export const FullBlog = ({ blog }: { blog: Blog }) => {
     const { user } = useCurrentUser();
+    const showToast = useToast();
     const navigate = useNavigate();
     const [deleting, setDeleting] = useState(false);
 
@@ -30,9 +32,10 @@ export const FullBlog = ({ blog }: { blog: Blog }) => {
             await axios.delete(`${BACKEND_URL}/api/v1/blog/${blog.id}`, {
                 headers: { Authorization: token ? `Bearer ${token}` : "" }
             });
+            showToast("success", "Blog post deleted successfully.");
             navigate("/blogs");
         } catch (err) {
-            alert(err || "Failed to delete blog post");
+            showToast("error", getErrorMessage(err, "Failed to delete blog post."));
             setDeleting(false);
         }
     };

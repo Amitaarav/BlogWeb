@@ -8,13 +8,13 @@ import { Avatar } from "../components/BlogCard";
 import { useCurrentUser } from "../hooks/useBlogs";
 import { useTheme } from "../context/useTheme";
 import { BACKEND_URL } from "../config";
+import { getErrorMessage, useToast } from "../context/ToastContext";
 
 export const Profile: React.FC = () => {
   const { user, refetchUser } = useCurrentUser();
   const { theme, toggleTheme } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const showToast = useToast();
 
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -42,8 +42,6 @@ export const Profile: React.FC = () => {
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setError(null);
-      setSuccessMsg(null);
 
       try {
         setLoading(true);
@@ -67,21 +65,14 @@ export const Profile: React.FC = () => {
           refetchUser();
         }
 
-        setSuccessMsg("Profile updated successfully!");
+        showToast("success", "Profile updated successfully.");
       } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-        setError(
-          err.response?.data?.message ||
-            "Failed to update profile"
-              );
-        } else {
-          setError("Failed to update profile");
-        }
+        showToast("error", getErrorMessage(err, "Failed to update profile."));
       } finally {
         setLoading(false);
       }
     },
-    [name, username, refetchUser]
+    [name, username, refetchUser, showToast]
   );
 
   return (
@@ -121,32 +112,6 @@ export const Profile: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4">
-            {successMsg && (
-              <div
-                className="p-3 rounded text-xs sm:text-sm border font-bold"
-                style={{
-                  borderColor: "var(--syn-string)",
-                  color: "var(--syn-string)",
-                  backgroundColor: "var(--bg-secondary)",
-                }}
-              >
-                ✓ {successMsg}
-              </div>
-            )}
-
-            {error && (
-              <div
-                className="p-3 rounded text-xs sm:text-sm border font-bold"
-                style={{
-                  borderColor: "var(--accent)",
-                  color: "var(--accent)",
-                  backgroundColor: "var(--bg-secondary)",
-                }}
-              >
-                ⚠️ {error}
-              </div>
-            )}
-
             {/* Name */}
             <div>
               <label

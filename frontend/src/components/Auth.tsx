@@ -4,6 +4,7 @@ import axios from "axios";
 import { BACKEND_URL } from "../config";
 import { SignUpInput } from "@amitaarav/blog-common";
 import { useTheme } from "../context/useTheme";
+import { getErrorMessage, useToast } from "../context/ToastContext";
 
 export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   const [postInputs, setPostInputs] = useState<
@@ -16,20 +17,18 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { theme, toggleTheme } = useTheme();
+  const showToast = useToast();
   const navigate = useNavigate();
 
   async function sendRequest() {
-    setError(null);
-
     if (!postInputs.email || !postInputs.password) {
-      setError("Please fill in all required fields.");
+      showToast("error", "Please fill in all required fields.");
       return;
     }
 
     if (type === "signup" && !postInputs.username) {
-      setError("Username is required.");
+      showToast("error", "Username is required.");
       return;
     }
 
@@ -61,20 +60,17 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
         localStorage.setItem("user", JSON.stringify(user));
       }
 
+      showToast(
+        "success",
+        type === "signup" ? "Account created successfully." : "Signed in successfully.",
+      );
       navigate("/blogs");
     } catch (err: unknown) {
       console.error("Auth error:", err);
-
-      if (axios.isAxiosError(err)) {
-        setError(
-          err.response?.data?.message ||
-            (typeof err.response?.data === "string"
-              ? err.response.data
-              : "Something went wrong. Please check your credentials.")
-        );
-      } else {
-        setError("Something went wrong. Please check your credentials.");
-      }
+      showToast(
+        "error",
+        getErrorMessage(err, "Something went wrong. Please check your credentials."),
+      );
     } finally {
       setLoading(false);
     }
@@ -143,19 +139,6 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
               </Link>
             </p>
           </div>
-
-          {error && (
-            <div
-              className="my-3 p-3 rounded text-xs border font-semibold"
-              style={{
-                borderColor: "var(--accent)",
-                color: "var(--accent)",
-                backgroundColor: "var(--bg-secondary)",
-              }}
-            >
-              ⚠️ {error}
-            </div>
-          )}
 
           <form
             onSubmit={(e) => {

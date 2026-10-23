@@ -13,6 +13,7 @@ import { TableOfContents } from "../components/TableOfContents";
 import { BlogFooter } from "../components/BlogFooter";
 import { ContentBlockRenderer } from "../components/ContentBlockRenderer";
 import { parseBlogContent } from "../utils/contentParser";
+import { getErrorMessage, useToast } from "../../../context/ToastContext";
 
 const DEMO_ENGINEERING_BLOG = {
   id: "demo",
@@ -162,6 +163,7 @@ export const BlogPostPage = () => {
   const isDemo = id === "demo";
   const { loading, blog: fetchedBlog, error, refetch } = useBlog({ id: isDemo ? "" : id || "" });
   const { user } = useCurrentUser();
+  const showToast = useToast();
   const [deleting, setDeleting] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -275,19 +277,12 @@ export const BlogPostPage = () => {
       await axios.delete(`${BACKEND_URL}/api/v1/blogs/${blog.id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
+      showToast("success", "Blog post deleted successfully.");
       navigate("/blogs");
     } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        alert(
-            err.response?.data?.message ||
-              "Failed to delete post"
-          );
-        } else {
-          alert("Failed to delete post");
-        }
-
-        setDeleting(false);
-      }
+      showToast("error", getErrorMessage(err, "Failed to delete post."));
+      setDeleting(false);
+    }
   };
 
   const handleCopyLink = () => {
