@@ -4,7 +4,8 @@ export type HyperdriveBinding = {
 
 export type Bindings = {
     JWT_SECRET: string;
-    HYPERDRIVE: HyperdriveBinding;
+    HYPERDRIVE?: HyperdriveBinding;
+    DATABASE_URL?: string;
 };
 
 export type Variables = {

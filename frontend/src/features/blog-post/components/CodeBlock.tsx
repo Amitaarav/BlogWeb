@@ -1,54 +1,63 @@
 import { useState } from "react";
+import { copyCodeToClipboard } from "../utils/codeUtils";
 
 interface CodeBlockProps {
   code: string;
   language?: string;
 }
 
-/** Simple regex-based syntax highlighter for demo purposes */
-function highlightSyntax(code: string): string {
-  // Escape HTML first
-  let html = code
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  // Comments  (// ... )
-  html = html.replace(
-    /(\/\/.*)/g,
-    '<span style="color: var(--syn-comment); font-style: italic;">$1</span>'
+function highlightSyntax(code: string, language: string) {
+  const sql = language === "sql";
+  const tokenRegex = sql
+    ? /--[^\r\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b[A-Za-z_$][\w$]*\b/g
+    : /\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b[A-Za-z_$][\w$]*\b/g;
+  const keywords = new Set(
+    sql
+      ? "select from where and or not null insert into values update set delete join left right inner outer on as group by order having limit offset create table primary key foreign references default count distinct like is between union all returning"
+          .split(" ")
+      : "const let var function return if else for while import export from default class new this async await try catch throw typeof interface type extends implements"
+          .split(" "),
   );
+  const tokens: React.ReactNode[] = [];
+  let cursor = 0;
 
-  // Strings (double & single quoted)
-  html = html.replace(
-    /(&quot;|"|'|`)([^"'`]*?)(\1)/g,
-    '<span style="color: var(--syn-string);">$1$2$3</span>'
-  );
+  for (const match of code.matchAll(tokenRegex)) {
+    const value = match[0];
+    const index = match.index ?? 0;
 
-  // Keywords
-  const keywords =
-    "const|let|var|function|return|if|else|for|while|import|export|from|default|class|new|this|async|await|try|catch|throw|typeof|interface|type|extends|implements";
-  const kwRegex = new RegExp(`\\b(${keywords})\\b`, "g");
-  html = html.replace(
-    kwRegex,
-    '<span style="color: var(--syn-keyword); font-weight: bold;">$1</span>'
-  );
+    if (index > cursor) tokens.push(code.slice(cursor, index));
 
-  return html;
+    let className = "";
+    if (/^(\/\/|\/\*|--)/.test(value)) {
+      className = "text-[var(--syn-comment)] italic";
+    } else if (/^["'`]/.test(value)) {
+      className = "text-[var(--syn-string)]";
+    } else if (keywords.has(value.toLowerCase())) {
+      className = "font-bold text-[var(--syn-keyword)]";
+    }
+
+    tokens.push(
+      className ? <span className={className} key={index}>{value}</span> : value,
+    );
+    cursor = index + value.length;
+  }
+
+  if (cursor < code.length) tokens.push(code.slice(cursor));
+  return tokens;
 }
 
 export const CodeBlock = ({ code, language = "typescript" }: CodeBlockProps) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(code);
+    await copyCodeToClipboard(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <div
-      className="rounded-lg my-6 relative group font-mono text-sm overflow-hidden"
+      className="article-code rounded-lg my-6 relative group font-mono text-sm overflow-hidden"
       style={{ backgroundColor: "var(--bg-code)" }}
     >
       {/* Header bar */}
@@ -71,10 +80,7 @@ export const CodeBlock = ({ code, language = "typescript" }: CodeBlockProps) => 
 
       {/* Code content */}
       <pre className="p-5 overflow-x-auto leading-relaxed">
-        <code
-          dangerouslySetInnerHTML={{ __html: highlightSyntax(code) }}
-          style={{ color: "var(--syn-ident)" }}
-        />
+        <code style={{ color: "var(--syn-ident)" }}>{highlightSyntax(code, language)}</code>
       </pre>
     </div>
   );

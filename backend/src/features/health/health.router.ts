@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createPrisma } from "../../lib/prisma";
+import { createPrismaFromBindings } from "../../lib/prisma";
 import type { Bindings } from "../../types/env";
 
 export const healthRouter = new Hono<{
@@ -8,8 +8,11 @@ export const healthRouter = new Hono<{
 
 healthRouter.get("/db", async (c) => {
   try {
-    const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+    const prisma = createPrismaFromBindings(c.env);
+
     await prisma.$queryRaw`SELECT 1`;
+
+    await prisma.$disconnect();
 
     return c.json({
       status: "ok",
@@ -17,10 +20,12 @@ healthRouter.get("/db", async (c) => {
     });
   } catch (error) {
     console.error("Database health check failed:", error);
+
     return c.json(
       {
         status: "error",
         database: "disconnected",
+        error: error instanceof Error ? error.message : String(error),
       },
       500
     );

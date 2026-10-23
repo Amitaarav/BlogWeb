@@ -6,10 +6,7 @@ import { AnnouncementBar } from "../features/blog-post/components/AnnouncementBa
 import { BlogFooter } from "../features/blog-post/components/BlogFooter";
 import { Breadcrumb } from "../features/blog-post/components/Breadcrumb";
 import { BlogTitle } from "../features/blog-post/components/BlogTitle";
-import { CodeBlock } from "../features/blog-post/components/CodeBlock";
-import { MermaidDiagram } from "../features/blog-post/components/MermaidDiagram";
-import { CodeSandbox } from "../features/blog-post/components/CodeSandbox";
-import { SystemDesignFlow } from "../features/blog-post/components/SystemDesignFlow";
+import { ContentBlockRenderer } from "../features/blog-post/components/ContentBlockRenderer";
 import { parseBlogContent } from "../features/blog-post/utils/contentParser";
 import { Spinner } from "../components/Spinner";
 import { BACKEND_URL } from "../config";
@@ -411,6 +408,50 @@ export const Publish: React.FC = () => {
                 </button>
               </div>
 
+              <section
+                className="px-4 py-3 border-b text-xs leading-relaxed"
+                style={{
+                  borderColor: "var(--border)",
+                  backgroundColor: "var(--bg-secondary)",
+                  color: "var(--text-dim)",
+                }}
+                aria-labelledby="writing-guide-title"
+              >
+                <h2
+                  id="writing-guide-title"
+                  className="font-bold text-sm mb-2"
+                  style={{ color: "var(--text)" }}
+                >
+                  Writing guide
+                </h2>
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <div>
+                    <h3 className="font-bold mb-1" style={{ color: "var(--text)" }}>
+                      Article structure
+                    </h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Write the article title in the title field. Use <code>##</code> for sections and <code>###</code> for subsections.</li>
+                      <li>Leave a blank line between paragraphs and between headings and content.</li>
+                      <li>Use fenced code blocks with a language label, such as <code>```ts</code>, for static examples.</li>
+                      <li>Markdown bullets, tables, inline emphasis, and links are not formatted by the current renderer. Check them in Preview before publishing.</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-bold mb-1" style={{ color: "var(--text)" }}>
+                      Interactive blocks
+                    </h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li><code>```mermaid</code>: Mermaid chart syntax. Close every block with <code>```</code>.</li>
+                      <li><code>```sandbox</code>: standalone browser JavaScript. Use <code>console.log()</code> to show output; modules and server-side packages are not available.</li>
+                      <li><code>```system-design</code>: one step per line as <code>Service | Role | Detail | Metric</code>. Keep each field free of the <code>|</code> character.</li>
+                    </ul>
+                    <p className="mt-2">
+                      The insert buttons add valid starter examples. Edit the sample, then check that each diagram or sandbox renders and runs in Preview.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
               {/* Title Input */}
               <div className="p-4 border-b" style={{ borderColor: "var(--border)" }}>
                 <input
@@ -505,77 +546,9 @@ export const Publish: React.FC = () => {
                       Type markdown or insert engineering components on the left to see the live preview.
                     </div>
                   ) : (
-                    blocks.map((block, idx) => {
-                      switch (block.type) {
-                        case "heading":
-                          return block.level === 2 ? (
-                            <h2
-                              key={idx}
-                              className="text-xl font-bold mt-8 mb-3 flex items-center gap-2"
-                              style={{ color: "var(--text)" }}
-                            >
-                              <span
-                                className="w-1.5 h-4 rounded-full inline-block"
-                                style={{ backgroundColor: "var(--accent)" }}
-                              />
-                              {block.text}
-                            </h2>
-                          ) : (
-                            <h3
-                              key={idx}
-                              className="text-base font-bold mt-6 mb-2"
-                              style={{ color: "var(--text)" }}
-                            >
-                              {block.text}
-                            </h3>
-                          );
-
-                        case "code":
-                          return <CodeBlock key={idx} code={block.code} language={block.language} />;
-
-                        case "mermaid":
-                          return <MermaidDiagram key={idx} chart={block.chart} />;
-
-                        case "sandbox":
-                          return (
-                            <CodeSandbox
-                              key={idx}
-                              initialCode={block.code}
-                              language={block.language}
-                              title={block.title}
-                            />
-                          );
-
-                        case "system-design":
-                          return (
-                            <SystemDesignFlow
-                              key={idx}
-                              title={block.title}
-                              steps={block.steps}
-                            />
-                          );
-
-                        case "paragraph":
-                          return (
-                            <p key={idx} className="leading-relaxed" style={{ color: "var(--text)" }}>
-                              {block.text}
-                            </p>
-                          );
-
-                        case "html":
-                          return (
-                            <div
-                              key={idx}
-                              className="leading-relaxed prose-content"
-                              style={{ color: "var(--text)" }}
-                              dangerouslySetInnerHTML={{ __html: block.html }}
-                            />
-                          );
-
-                        default:
-                          return null;
-                      }
-                    })
+                    blocks.map((block, idx) => (
+                      <ContentBlockRenderer key={idx} block={block} />
+                    ))
                   )}
                 </div>
               </div>

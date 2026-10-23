@@ -4,15 +4,7 @@ import { cors } from "hono/cors";
 import { userRouter } from "./features/user";
 import { blogRouter } from "./features/blog";
 import { healthRouter } from "./features/health";
-
-type Bindings = {
-  JWT_SECRET: string;
-  HYPERDRIVE: Hyperdrive;
-};
-
-type Variables = {
-  userId: string;
-};
+import type { Bindings, Variables } from "./types/env";
 
 const app = new Hono<{
   Bindings: Bindings;

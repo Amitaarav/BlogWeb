@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createPrisma } from "../../lib/prisma";
+import { createPrismaFromBindings } from "../../lib/prisma";
 import { sign, verify } from "hono/jwt";
 import bcrypt from "bcryptjs";
 import { signUpInput, signInInput, updateProfileInput } from "@amitaarav/blog-common";
@@ -21,7 +21,7 @@ userRouter.post("/signup", async (c) => {
     });
   }
 
-  const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+  const prisma = createPrismaFromBindings(c.env);
 
   try {
     const existingUser = await prisma.user.findFirst({
@@ -81,7 +81,7 @@ userRouter.post("/signin", async (c) => {
     });
   }
 
-  const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+  const prisma = createPrismaFromBindings(c.env);
 
   try {
     const user = await prisma.user.findFirst({
@@ -174,7 +174,7 @@ userRouter.get("/me", async (c) => {
       return c.json({ message: "Invalid token" });
     }
 
-    const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+    const prisma = createPrismaFromBindings(c.env);
 
     const user = await prisma.user.findUnique({
       where: { id: payload.id as string },
@@ -222,7 +222,7 @@ userRouter.put("/profile", async (c) => {
       return c.json({ message: "Invalid profile inputs" });
     }
 
-    const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+    const prisma = createPrismaFromBindings(c.env);
 
     const updatedUser = await prisma.user.update({
       where: { id: payload.id as string },

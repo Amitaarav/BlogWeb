@@ -9,13 +9,10 @@ import { AnnouncementBar } from "../components/AnnouncementBar";
 import { BlogNav } from "../components/BlogNav";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { BlogTitle } from "../components/BlogTitle";
-import { CodeBlock } from "../components/CodeBlock";
 import { TableOfContents } from "../components/TableOfContents";
 import { BlogFooter } from "../components/BlogFooter";
-import { MermaidDiagram } from "../components/MermaidDiagram";
-import { CodeSandbox } from "../components/CodeSandbox";
-import { SystemDesignFlow } from "../components/SystemDesignFlow";
-import { parseBlogContent, ContentBlock } from "../utils/contentParser";
+import { ContentBlockRenderer } from "../components/ContentBlockRenderer";
+import { parseBlogContent } from "../utils/contentParser";
 
 const DEMO_ENGINEERING_BLOG = {
   id: "demo",
@@ -117,73 +114,46 @@ When choosing between synchronous write-through caching versus asynchronous mess
 `
 };
 
-function RenderBlock({ block }: { block: ContentBlock }) {
-  switch (block.type) {
-    case "heading":
-      return block.level === 2 ? (
-        <h2
-          id={block.id}
-          className="text-2xl font-bold mt-10 mb-4 scroll-mt-28 flex items-center gap-2"
-          style={{ color: "var(--text)" }}
-        >
-          <span
-            className="w-1.5 h-5 rounded-full inline-block"
-            style={{ backgroundColor: "var(--accent)" }}
-          />
-          {block.text}
-        </h2>
-      ) : (
-        <h3
-          id={block.id}
-          className="text-lg font-bold mt-8 mb-3 scroll-mt-28"
-          style={{ color: "var(--text)" }}
-        >
-          {block.text}
-        </h3>
-      );
+function BlogPostSpotlightStyles() {
+  return (
+    <style>{`
+      .blog-post-content {
+        position: relative;
+      }
 
-    case "code":
-      return <CodeBlock code={block.code} language={block.language} />;
+      .blog-post-click-glow {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 52px;
+        height: 52px;
+        margin-left: -26px;
+        margin-top: -26px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(232, 80, 28, 0.96) 0%, rgba(232, 80, 28, 0.52) 28%, rgba(232, 80, 28, 0.14) 64%, rgba(232, 80, 28, 0) 100%);
+        filter: blur(2px);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 9999;
+        transform: scale(0.6);
+        animation: blog-post-click-glow 600ms ease-out forwards;
+      }
 
-    case "mermaid":
-      return <MermaidDiagram chart={block.chart} />;
-
-    case "sandbox":
-      return (
-        <CodeSandbox
-          initialCode={block.code}
-          language={block.language}
-          title={block.title}
-        />
-      );
-
-    case "system-design":
-      return (
-        <SystemDesignFlow
-          title={block.title}
-          steps={block.steps}
-        />
-      );
-
-    case "paragraph":
-      return (
-        <p className="leading-relaxed text-sm sm:text-base" style={{ color: "var(--text)" }}>
-          {block.text}
-        </p>
-      );
-
-    case "html":
-      return (
-        <div
-          className="leading-relaxed text-sm sm:text-base prose-content"
-          style={{ color: "var(--text)" }}
-          dangerouslySetInnerHTML={{ __html: block.html }}
-        />
-      );
-
-    default:
-      return null;
-  }
+      @keyframes blog-post-click-glow {
+        0% {
+          opacity: 0;
+          transform: scale(0.6);
+        }
+        18% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.4);
+        }
+      }
+    `}</style>
+  );
 }
 
 export const BlogPostPage = () => {
@@ -326,11 +296,27 @@ export const BlogPostPage = () => {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  const handleArticlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    const glow = document.createElement("span");
+    glow.className = "blog-post-click-glow";
+    glow.style.left = `${event.clientX}px`;
+    glow.style.top = `${event.clientY}px`;
+    document.body.appendChild(glow);
+
+    const cleanup = () => {
+      glow.remove();
+    };
+
+    glow.addEventListener("animationend", cleanup, { once: true });
+    setTimeout(cleanup, 650);
+  };
+
   return (
     <div
-      className="min-h-screen font-mono transition-colors"
+      className="min-h-screen transition-colors"
       style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
     >
+      <BlogPostSpotlightStyles />
       <AnnouncementBar />
       <BlogNav />
 
@@ -338,7 +324,10 @@ export const BlogPostPage = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-12">
           {/* Article column */}
-          <article className="min-w-0">
+          <article
+            className="blog-post-content min-w-0"
+            onPointerDown={handleArticlePointerDown}
+          >
             <Breadcrumb
               items={[
                 { label: "Home", href: "/" },
@@ -359,9 +348,9 @@ export const BlogPostPage = () => {
             />
 
             {/* Article body */}
-            <div className="space-y-4 text-base leading-relaxed">
+            <div className="article-reading">
               {blocks.map((block, i) => (
-                <RenderBlock key={i} block={block} />
+                <ContentBlockRenderer key={i} block={block} />
               ))}
             </div>
 

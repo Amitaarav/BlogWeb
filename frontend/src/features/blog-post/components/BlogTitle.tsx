@@ -23,7 +23,7 @@ export const BlogTitle = ({
   editHref,
 }: BlogTitleProps) => {
   return (
-    <div className="font-mono mb-8">
+    <div className="mb-8">
       {/* Title with orange accent bar */}
       <div className="flex items-stretch gap-4 mb-4">
         <div
@@ -31,7 +31,7 @@ export const BlogTitle = ({
           style={{ backgroundColor: "var(--accent)" }}
         />
         <h1
-          className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight"
+          className="article-title text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight"
           style={{ color: "var(--text)" }}
         >
           {title}

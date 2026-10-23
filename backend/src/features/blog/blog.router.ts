@@ -1,5 +1,5 @@
 import { createBlogInput, updateBlogInput } from "@amitaarav/blog-common";
-import { createPrisma } from "../../lib/prisma";
+import { createPrismaFromBindings } from "../../lib/prisma";
 import { Hono } from "hono";
 import { verify } from "hono/jwt";
 import type { Bindings, Variables } from "../../types/env";
@@ -40,7 +40,7 @@ const authMiddleware = async (c: any, next: any) => {
 // GET: Search Blogs by query (?q=...)
 blogRouter.get("/search", async (c) => {
   const query = c.req.query("q") || "";
-  const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+  const prisma = createPrismaFromBindings(c.env);
 
   try {
     const blogs = await prisma.blog.findMany({
@@ -81,7 +81,7 @@ blogRouter.get("/search", async (c) => {
 blogRouter.get("/author/:authorId", async (c) => {
   const authorId = c.req.param("authorId");
   const excludeId = c.req.query("excludeId");
-  const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+  const prisma = createPrismaFromBindings(c.env);
 
   try {
     const blogs = await prisma.blog.findMany({
@@ -118,7 +118,7 @@ blogRouter.get("/author/:authorId", async (c) => {
 
 // GET: Fetch All Blogs (bulk)
 blogRouter.get("/bulk", async (c) => {
-  const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+  const prisma = createPrismaFromBindings(c.env);
 
   try {
     const blogs = await prisma.blog.findMany({
@@ -154,7 +154,7 @@ blogRouter.get("/bulk", async (c) => {
 // GET: Fetch Single Blog
 blogRouter.get("/:id", async (c) => {
   const id = c.req.param("id");
-  const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+  const prisma = createPrismaFromBindings(c.env);
   try {
     const blog = await prisma.blog.findFirst({
       where: { id },
@@ -200,7 +200,7 @@ blogRouter.post("/", authMiddleware, async (c) => {
   }
 
   const userId = c.get("userId");
-  const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+  const prisma = createPrismaFromBindings(c.env);
   try {
     const blog = await prisma.blog.create({
       data: {
@@ -245,7 +245,7 @@ const handleUpdate = async (c: any) => {
   }
 
   const userId = c.get("userId");
-  const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+  const prisma = createPrismaFromBindings(c.env);
   try {
     const existingBlog = await prisma.blog.findUnique({
       where: { id: body.id },
@@ -299,7 +299,7 @@ blogRouter.put("/update", authMiddleware, handleUpdate);
 blogRouter.delete("/:id", authMiddleware, async (c) => {
   const id = c.req.param("id");
   const userId = c.get("userId");
-  const prisma = createPrisma(c.env.HYPERDRIVE.connectionString);
+  const prisma = createPrismaFromBindings(c.env);
   try {
     const existingBlog = await prisma.blog.findUnique({
       where: { id },

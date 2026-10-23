@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "blogweb-backend" generated at 2026-10-22T18:21:23.160Z.

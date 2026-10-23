@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useId } from "react";
 import { useTheme } from "../../../context/useTheme";
 import mermaid from "mermaid";
 
@@ -7,7 +7,9 @@ interface MermaidDiagramProps {
 }
 
 export const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const reactId = useId();
+  const diagramId = `mermaid-${reactId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const renderId = `${diagramId}-svg`;
   const [svgContent, setSvgContent] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -18,7 +20,10 @@ export const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
     let isMounted = true;
 
     async function renderDiagram() {
-      if (!chart.trim()) return;
+      if (!chart.trim()) {
+        setError("Diagram source is empty");
+        return;
+      }
 
       setError(null);
       setSvgContent("");
@@ -27,7 +32,7 @@ export const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
         mermaid.initialize({
           startOnLoad: false,
           theme: theme === "dark" ? "dark" : "default",
-          securityLevel: "loose",
+          securityLevel: "strict",
           fontFamily: "'JetBrains Mono', monospace",
 
           themeVariables:
@@ -48,11 +53,7 @@ export const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
                 },
         });
 
-        const id = `mermaid-${Math.random()
-          .toString(36)
-          .substring(2, 9)}`;
-
-        const { svg } = await mermaid.render(id, chart);
+        const { svg } = await mermaid.render(renderId, chart);
 
         if (isMounted) {
           setSvgContent(svg);
@@ -75,7 +76,7 @@ export const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
     return () => {
       isMounted = false;
     };
-  }, [chart, theme]);
+  }, [chart, renderId, theme]);
 
   const handleCopyCode = async () => {
     try {
@@ -91,11 +92,16 @@ export const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   };
 
   return (
-    <>
       <div
-        className="my-6 rounded-lg border font-mono overflow-hidden transition-colors"
+        id={diagramId}
+        role={isFullscreen ? "dialog" : undefined}
+        aria-modal={isFullscreen ? true : undefined}
+        aria-label={isFullscreen ? "Fullscreen architecture diagram" : undefined}
+        className={`article-diagram rounded-lg border font-mono overflow-hidden transition-colors ${
+          isFullscreen ? "fixed inset-0 z-50 flex flex-col p-6" : "my-6"
+        }`}
         style={{
-          backgroundColor: "var(--bg-card)",
+          backgroundColor: isFullscreen ? "rgba(0, 0, 0, 0.9)" : "var(--bg-card)",
           borderColor: "var(--border)",
         }}
       >
@@ -129,21 +135,21 @@ export const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
             </button>
 
             <button
-              onClick={() => setIsFullscreen(true)}
+              onClick={() => setIsFullscreen((expanded) => !expanded)}
               className="px-2 py-0.5 rounded border transition hover:opacity-80"
               style={{
                 borderColor: "var(--border)",
                 color: "var(--text-dim)",
               }}
-              title="Expand Fullscreen"
+              title={isFullscreen ? "Close fullscreen" : "Expand fullscreen"}
             >
-              ⤢ Expand
+              {isFullscreen ? "✕ Close" : "⤢ Expand"}
             </button>
           </div>
         </div>
 
         {/* Render Canvas */}
-        <div className="p-6 overflow-x-auto flex justify-center items-center min-h-[160px]">
+        <div className={`article-diagram__canvas p-6 overflow-auto flex items-center ${isFullscreen ? "flex-1 justify-center" : "min-h-[160px]"}`}>
           {error ? (
             <div className="text-center p-4">
               <p
@@ -165,8 +171,9 @@ export const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
             </div>
           ) : svgContent ? (
             <div
-              ref={containerRef}
               className="w-full flex justify-center [&>svg]:max-w-full [&>svg]:h-auto"
+              role="img"
+              aria-label={`Mermaid diagram: ${chart.replace(/\s+/g, " ").trim().slice(0, 180)}`}
               dangerouslySetInnerHTML={{
                 __html: svgContent,
               }}
@@ -182,40 +189,6 @@ export const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
           )}
         </div>
       </div>
-
-      {/* Fullscreen Expansion Modal */}
-      {isFullscreen && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col p-6 backdrop-blur-md"
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.85)",
-          }}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm font-bold text-white flex items-center gap-2">
-              <span style={{ color: "var(--accent)" }}>📐</span>
-              Fullscreen Architecture Diagram
-            </span>
-
-            <button
-              onClick={() => setIsFullscreen(false)}
-              className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-bold transition"
-            >
-              ✕ Close
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-auto flex items-center justify-center p-4 bg-black/40 rounded-lg border border-white/10">
-            <div
-              className="max-w-5xl w-full [&>svg]:w-full [&>svg]:h-auto"
-              dangerouslySetInnerHTML={{
-                __html: svgContent,
-              }}
-            />
-          </div>
-        </div>
-      )}
-    </>
   );
 };
 
