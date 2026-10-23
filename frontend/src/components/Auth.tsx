@@ -5,6 +5,7 @@ import { BACKEND_URL } from "../config";
 import { SignUpInput } from "@amitaarav/blog-common";
 import { useTheme } from "../context/useTheme";
 import { getErrorMessage, useToast } from "../context/ToastContext";
+import { queryClient, queryKeys } from "../lib/queryClient";
 
 export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   const [postInputs, setPostInputs] = useState<
@@ -56,8 +57,10 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
         localStorage.setItem("token", token);
       }
 
+      queryClient.clear();
       if (user) {
         localStorage.setItem("user", JSON.stringify(user));
+        queryClient.setQueryData(queryKeys.currentUser, user);
       }
 
       showToast(

@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import { BACKEND_URL } from "../config";
+import { queryKeys } from "../lib/queryClient";
 
 export interface BlogAuthor {
     id?: string;
@@ -26,110 +27,89 @@ export interface UserProfile {
     name?: string | null;
 }
 
+function getErrorMessage(error: unknown, fallback: string): string | null {
+    if (!error) return null;
+    if (axios.isAxiosError(error)) {
+        return error.response?.data?.message || fallback;
+    }
+    return fallback;
+}
+
 export const useBlog = ({ id }: { id: string }) => {
-    const [blog, setBlog] = useState<Blog | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchBlog = useCallback(() => {
-        if (!id) return;
-        setLoading(true);
+    const query = useQuery({
+        queryKey: queryKeys.blog(id),
+        enabled: Boolean(id),
+        queryFn: async ({ signal }) => {
         const token = localStorage.getItem("token");
-        axios.get(`${BACKEND_URL}/api/v1/blogs/${id}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-            .then((res) => {
-                setBlog(res.data.blog);
-                setError(null);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error("Error fetching blog:", err);
-                setError(err.response?.data?.message || "Failed to fetch blog");
-                setLoading(false);
+            const response = await axios.get(`${BACKEND_URL}/api/v1/blogs/${id}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                signal,
             });
-    }, [id]);
-
-    useEffect(() => {
-        fetchBlog();
-    }, [fetchBlog]);
+            return response.data.blog as Blog;
+        },
+    });
 
     return {
-        loading,
-        blog,
-        error,
-        refetch: fetchBlog
+        loading: query.isPending,
+        blog: query.data ?? null,
+        error: getErrorMessage(query.error, "Failed to fetch blog"),
+        isNotFound: axios.isAxiosError(query.error) && query.error.response?.status === 404,
+        refetch: () => query.refetch(),
     };
 };
 
 export const useBlogs = () => {
-    const [blogs, setBlogs] = useState<Blog[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchBlogs = useCallback(() => {
-        setLoading(true);
+    const query = useQuery({
+        queryKey: queryKeys.blogList,
+        queryFn: async ({ signal }) => {
         const token = localStorage.getItem("token");
-        axios.get(`${BACKEND_URL}/api/v1/blogs/bulk`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-            .then((res) => {
-                setBlogs(res.data.blogs || []);
-                setError(null);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error("Error fetching blogs:", err);
-                setError(err.response?.data?.message || "Failed to fetch blogs");
-                setLoading(false);
+            const response = await axios.get(`${BACKEND_URL}/api/v1/blogs/bulk`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                signal,
             });
-    }, []);
-
-    useEffect(() => {
-        fetchBlogs();
-    }, [fetchBlogs]);
+            return (response.data.blogs || []) as Blog[];
+        },
+    });
 
     return {
-        loading,
-        blogs,
-        error,
-        refetch: fetchBlogs
+        loading: query.isPending,
+        blogs: query.data ?? [],
+        error: getErrorMessage(query.error, "Failed to fetch blogs"),
+        refetch: () => query.refetch(),
     };
 };
 
 export const useCurrentUser = () => {
-    const [user, setUser] = useState<UserProfile | null>(() => {
-        const saved = localStorage.getItem("user");
-        return saved ? JSON.parse(saved) : null;
-    });
-    const [loading, setLoading] = useState(false);
+    const token = localStorage.getItem("token");
+    const query = useQuery({
+        queryKey: queryKeys.currentUser,
+        enabled: Boolean(token),
+        initialData: () => {
+            if (!token) return undefined;
+            try {
+                const saved = localStorage.getItem("user");
+                return saved ? JSON.parse(saved) as UserProfile : undefined;
+            } catch {
+                return undefined;
+            }
+        },
+        queryFn: async ({ signal }) => {
+            const currentToken = localStorage.getItem("token");
+            if (!currentToken) return null;
 
-    const fetchUser = useCallback(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            setUser(null);
-            return;
-        }
-
-        setLoading(true);
-        axios.get(`${BACKEND_URL}/api/v1/users/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-            .then((res) => {
-                if (res.data?.user) {
-                    setUser(res.data.user);
-                    localStorage.setItem("user", JSON.stringify(res.data.user));
-                }
-                setLoading(false);
-            })
-            .catch(() => {
-                setLoading(false);
+            const response = await axios.get(`${BACKEND_URL}/api/v1/users/me`, {
+                headers: { Authorization: `Bearer ${currentToken}` },
+                signal,
             });
-    }, []);
+            const user = response.data?.user as UserProfile | undefined;
+            if (user) localStorage.setItem("user", JSON.stringify(user));
+            return user ?? null;
+        },
+    });
 
-    useEffect(() => {
-        fetchUser();
-    }, [fetchUser]);
-
-    return { user, loading, refetchUser: fetchUser };
+    return {
+        user: token ? query.data ?? null : null,
+        loading: query.isFetching,
+        refetchUser: () => query.refetch(),
+    };
 };

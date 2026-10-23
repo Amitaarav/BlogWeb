@@ -13,6 +13,9 @@ import { TableOfContents } from "../components/TableOfContents";
 import { BlogFooter } from "../components/BlogFooter";
 import { ContentBlockRenderer } from "../components/ContentBlockRenderer";
 import { parseBlogContent } from "../utils/contentParser";
+import { NotFound } from "../../../pages/NotFound";
+import { queryKeys } from "../../../lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
 import { getErrorMessage, useToast } from "../../../context/ToastContext";
 
 const DEMO_ENGINEERING_BLOG = {
@@ -161,7 +164,8 @@ export const BlogPostPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isDemo = id === "demo";
-  const { loading, blog: fetchedBlog, error, refetch } = useBlog({ id: isDemo ? "" : id || "" });
+  const { loading, blog: fetchedBlog, error, isNotFound, refetch } = useBlog({ id: isDemo ? "" : id || "" });
+  const queryClient = useQueryClient();
   const { user } = useCurrentUser();
   const showToast = useToast();
   const [deleting, setDeleting] = useState(false);
@@ -190,8 +194,12 @@ export const BlogPostPage = () => {
     );
   }
 
-  // Error state / not found
-  if (!isDemo && (error || !blog)) {
+  if (!isDemo && (isNotFound || (!loading && !error && !blog))) {
+    return <NotFound />;
+  }
+
+  // Transient fetch errors remain retryable and distinct from 404s.
+  if (!isDemo && error) {
     return (
       <div
         className="min-h-screen font-mono flex flex-col transition-colors"
@@ -205,25 +213,17 @@ export const BlogPostPage = () => {
             className="text-2xl font-bold mb-2"
             style={{ color: "var(--text)" }}
           >
-            Blog Post Not Found
+            Couldn't load this post
           </h2>
           <p
             className="max-w-md mb-6 text-sm"
             style={{ color: "var(--text-dim)" }}
           >
-            The article you are looking for might have been removed, had its
-            name changed, or is temporarily unavailable.
+            {error}. Please try again in a moment.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Link
-              to="/blog/demo"
-              className="px-5 py-2.5 rounded text-sm font-bold text-white transition hover:opacity-90 shadow"
-              style={{ backgroundColor: "var(--accent)" }}
-            >
-              ▶ View Interactive Engineering Demo Post
-            </Link>
             <button
-              onClick={refetch}
+              onClick={() => void refetch()}
               className="px-5 py-2.5 rounded text-sm font-bold border transition hover:opacity-80"
               style={{
                 borderColor: "var(--border)",
@@ -277,6 +277,7 @@ export const BlogPostPage = () => {
       await axios.delete(`${BACKEND_URL}/api/v1/blogs/${blog.id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.blogs });
       showToast("success", "Blog post deleted successfully.");
       navigate("/blogs");
     } catch (err: unknown) {

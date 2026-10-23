@@ -9,6 +9,7 @@ import { useCurrentUser } from "../hooks/useBlogs";
 import { useTheme } from "../context/useTheme";
 import { BACKEND_URL } from "../config";
 import { getErrorMessage, useToast } from "../context/ToastContext";
+import { queryClient, queryKeys } from "../lib/queryClient";
 
 export const Profile: React.FC = () => {
   const { user, refetchUser } = useCurrentUser();
@@ -62,7 +63,7 @@ export const Profile: React.FC = () => {
 
         if (response.data?.user) {
           localStorage.setItem("user", JSON.stringify(response.data.user));
-          refetchUser();
+          queryClient.setQueryData(queryKeys.currentUser, response.data.user);
         }
 
         showToast("success", "Profile updated successfully.");
@@ -72,7 +73,7 @@ export const Profile: React.FC = () => {
         setLoading(false);
       }
     },
-    [name, username, refetchUser, showToast]
+    [name, username, showToast]
   );
 
   return (

@@ -9,6 +9,7 @@ import { BlogTitle } from "../features/blog-post/components/BlogTitle";
 import { ContentBlockRenderer } from "../features/blog-post/components/ContentBlockRenderer";
 import { parseBlogContent } from "../features/blog-post/utils/contentParser";
 import { getErrorMessage, useToast } from "../context/ToastContext";
+import { queryClient, queryKeys } from "../lib/queryClient";
 import { Spinner } from "../components/Spinner";
 import { BACKEND_URL } from "../config";
 
@@ -183,6 +184,8 @@ export const Publish: React.FC = () => {
             { id, title: title.trim(), content: description.trim() },
             { headers }
           );
+          await queryClient.invalidateQueries({ queryKey: queryKeys.blog(id) });
+          await queryClient.invalidateQueries({ queryKey: queryKeys.blogs });
           showToast("success", "Blog post updated successfully.");
           navigate(`/blog/${id}`);
         } else {
@@ -191,6 +194,7 @@ export const Publish: React.FC = () => {
             { title: title.trim(), content: description.trim() },
             { headers }
           );
+          await queryClient.invalidateQueries({ queryKey: queryKeys.blogs });
           localStorage.removeItem("blogweb_creator_draft");
           showToast("success", "Blog post published successfully.");
           navigate(`/blog/${data.id}`);

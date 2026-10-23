@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeProvider';
 import { Landing } from './pages/Landing';
 import { Signup } from './pages/Signup';
@@ -9,6 +9,7 @@ import { Publish } from './pages/Publish';
 import { Profile } from './pages/Profile';
 import { BlogPostPage } from './features/blog-post/pages/BlogPostPage';
 import { ToastProvider } from './context/ToastContext';
+import { NotFound } from './pages/NotFound';
 
 function App() {
   return (
@@ -25,7 +26,7 @@ function App() {
             <Route path="/edit/:id" element={<Publish />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/blog-v2/:id" element={<BlogPostPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

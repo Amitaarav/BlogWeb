@@ -13,6 +13,7 @@
   "dependencies": {
     "@amitaarav/blog-common": "^1.0.3",
     "@reduxjs/toolkit": "^2.5.0",
+    "@tanstack/react-query": "^5.104.5",
     "axios": "^1.7.9",
     "dompurify": "^3.4.17",
     "jodit-react": "^4.1.2",

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../../hooks/useBlogs";
 import { useTheme } from "../../../context/useTheme";
+import { queryClient } from "../../../lib/queryClient";
 export const BlogNav = () => {
   const { user } = useCurrentUser();
   const { theme, toggleTheme } = useTheme();
@@ -29,6 +30,7 @@ export const BlogNav = () => {
   const handleSignOut = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    queryClient.clear();
     setDropdownOpen(false);
     navigate("/signin");
   };

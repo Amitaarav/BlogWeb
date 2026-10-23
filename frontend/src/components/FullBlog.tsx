@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BACKEND_URL } from "../config";
 import { getErrorMessage, useToast } from "../context/ToastContext";
+import { queryClient, queryKeys } from "../lib/queryClient";
 
 export const FullBlog = ({ blog }: { blog: Blog }) => {
     const { user } = useCurrentUser();
@@ -32,6 +33,8 @@ export const FullBlog = ({ blog }: { blog: Blog }) => {
             await axios.delete(`${BACKEND_URL}/api/v1/blog/${blog.id}`, {
                 headers: { Authorization: token ? `Bearer ${token}` : "" }
             });
+            await queryClient.invalidateQueries({ queryKey: queryKeys.blogs });
+            await queryClient.removeQueries({ queryKey: queryKeys.blog(blog.id) });
             showToast("success", "Blog post deleted successfully.");
             navigate("/blogs");
         } catch (err) {
