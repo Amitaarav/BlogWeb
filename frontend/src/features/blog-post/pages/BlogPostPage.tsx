@@ -12,6 +12,7 @@ import { BlogTitle } from "../components/BlogTitle";
 import { TableOfContents } from "../components/TableOfContents";
 import { BlogFooter } from "../components/BlogFooter";
 import { ContentBlockRenderer } from "../components/ContentBlockRenderer";
+import { ArticleAudioControls } from "../components/ArticleAudioControls";
 import { parseBlogContent } from "../utils/contentParser";
 import { NotFound } from "../../../pages/NotFound";
 import { queryKeys } from "../../../lib/queryClient";
@@ -342,6 +343,8 @@ export const BlogPostPage = () => {
               deleting={deleting}
               editHref={isDemo ? `/publish` : `/edit/${blog.id}`}
             />
+
+            <ArticleAudioControls key={blog.id} blocks={blocks} />
 
             {/* Article body */}
             <div className="article-reading">
