@@ -46,14 +46,15 @@ export const BlogNav = () => {
         <div className="flex items-center gap-6">
           <Link
             to={isAuthenticated ? "/blogs" : "/"}
-            className="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-2"
+            className="flex items-center"
             style={{ color: "var(--text)" }}
+            aria-label="BlogWeb home"
           >
-            <span
-              className="w-2.5 h-6 rounded-sm inline-block"
-              style={{ backgroundColor: "var(--accent)" }}
+            <img
+              src="/logo-svg.svg"
+              alt="BlogWeb"
+              className="h-auto w-40 shrink-0 sm:w-36"
             />
-            BlogWeb
           </Link>
 
           {/* Nav links with pipe separators */}
