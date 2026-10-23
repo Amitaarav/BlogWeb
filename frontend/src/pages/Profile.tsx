@@ -12,7 +12,7 @@ import { getErrorMessage, useToast } from "../context/ToastContext";
 import { queryClient, queryKeys } from "../lib/queryClient";
 
 export const Profile: React.FC = () => {
-  const { user, refetchUser } = useCurrentUser();
+  const { user } = useCurrentUser();
   const { theme, toggleTheme } = useTheme();
   const [loading, setLoading] = useState(false);
   const showToast = useToast();

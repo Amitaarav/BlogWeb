@@ -57,6 +57,7 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
         localStorage.setItem("token", token);
       }
 
+      localStorage.removeItem("user");
       queryClient.clear();
       if (user) {
         localStorage.setItem("user", JSON.stringify(user));
