@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 /**
  * Scroll-spy hook: observes heading elements and returns the ID of the one
- * currently at/near the top of the viewport.
+ * currently intersecting the reading position near the top of the viewport.
  */
 export function useScrollSpy(
   ids: string[],
@@ -20,35 +20,33 @@ export function useScrollSpy(
       return;
     }
 
-    const onScroll = () => {
-      const scrollPos = window.scrollY + offset;
-      let currentId = ids[0];
+    const elements = ids
+      .map((id) => document.getElementById(id))
+      .filter((element): element is HTMLElement => element !== null);
+    const visible = new Set<string>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) visible.add(entry.target.id);
+          else visible.delete(entry.target.id);
+        });
 
-      for (let i = 0; i < ids.length; i++) {
-        const el = document.getElementById(ids[i]);
+        const current = elements
+          .filter((element) => visible.has(element.id))
+          .sort(
+            (left, right) =>
+              left.getBoundingClientRect().top - right.getBoundingClientRect().top,
+          )[0];
 
-        if (el) {
-          const top = el.offsetTop;
+        if (current) setActiveId(current.id);
+      },
+      { rootMargin: `-${offset}px 0px -70% 0px`, threshold: 0 },
+    );
 
-          if (scrollPos >= top - 20) {
-            currentId = ids[i];
-          }
-        }
-      }
+    elements.forEach((element) => observer.observe(element));
 
-      setActiveId(currentId);
-    };
-
-    window.addEventListener("scroll", onScroll, {
-      passive: true,
-    });
-
-    onScroll();
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, [idsKey, ids, offset]);
+    return () => observer.disconnect();
+  }, [idsKey, offset]);
 
   return activeId;
 }
